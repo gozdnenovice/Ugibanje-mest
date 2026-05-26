@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kviz: Glavna mesta</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e10;
+    --surface: #18181c;
+    --surface2: #222228;
+    --border: #2e2e38;
+    --accent: #c8f135;
+    --accent-dim: #9ab828;
+    --accent-bg: #1a2106;
+    --red: #ff4d4d;
+    --red-bg: #1f0a0a;
+    --text: #f0f0f0;
+    --muted: #7a7a8a;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-head);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(200,241,53,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 80% 90%, rgba(200,241,53,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 580px;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+  }
+
+  .logo {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .logo span { color: var(--muted); font-weight: 400; }
+
+  /* SCORE BAR */
+  .scorebar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .score-pill {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.9rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .score-pill.good { border-color: var(--accent); background: var(--accent-bg); }
+  .score-pill.bad  { border-color: var(--red);    background: var(--red-bg); }
+
+  .score-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .score-pill.good .score-label { color: var(--accent-dim); }
+  .score-pill.bad  .score-label { color: var(--red); opacity: 0.7; }
+
+  .score-val {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .score-pill.good .score-val { color: var(--accent); }
+  .score-pill.bad  .score-val { color: var(--red); }
+
+  /* PROGRESS */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .progress-txt {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem 2rem 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s;
+  }
+
+  .card.correct { border-color: var(--accent); }
+  .card.wrong   { border-color: var(--red); }
+
+  .q-mode-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 0.8rem;
+  }
+  .q-mode-badge.capital { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent); }
+  .q-mode-badge.country { background: #0d1a2e; color: #5ab4ff; border: 1px solid #1e5a9e; }
+
+
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+  }
+
+  .q-country {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1.6rem;
+    letter-spacing: -0.02em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .flag-img {
+    width: 72px;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    display: block;
+    margin-bottom: 0.8rem;
+  }
+
+  .flag-img-sm {
+    width: 28px;
+    height: auto;
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    caret-color: var(--accent);
+  }
+
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  .btn-submit {
+    background: var(--accent);
+    color: #0e0e10;
+    border: none;
+    border-radius: 10px;
+    padding: 0.8rem 1.4rem;
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .btn-submit:hover  { background: #d8ff3f; }
+  .btn-submit:active { transform: scale(0.97); }
+  .btn-submit:disabled { background: var(--surface2); color: var(--muted); cursor: default; }
+
+  /* FEEDBACK */
+  .feedback {
+    display: none;
+    margin-top: 1rem;
+    padding: 0.7rem 1rem;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .feedback.show { display: flex; }
+  .feedback.correct { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent); }
+  .feedback.wrong   { background: var(--red-bg);    color: var(--red);    border: 1px solid var(--red); }
+
+  /* NEXT BTN */
+  .btn-next {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.85rem;
+    font-family: var(--font-head);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: border-color 0.2s, background 0.2s;
+    display: none;
+  }
+
+  .btn-next.show { display: block; }
+  .btn-next:hover { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+
+  /* RESULTS SCREEN */
+  #results {
+    display: none;
+    text-align: center;
+  }
+
+  .result-title {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-sub {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .result-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem 1rem;
+  }
+
+  .result-stat .num {
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .result-stat .lbl {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .result-stat.win .num { color: var(--accent); }
+  .result-stat.loss .num { color: var(--red); }
+
+  .mistakes-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.2rem 1.5rem;
+    text-align: left;
+    margin-bottom: 2rem;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .mistakes-list h3 {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .mistake-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    gap: 1rem;
+  }
+
+  .mistake-item:last-child { border-bottom: none; }
+
+  .mistake-country { color: var(--muted); font-size: 0.85rem; }
+  .mistake-answer  { font-family: var(--font-mono); font-size: 0.8rem; }
+  .mistake-correct { color: var(--accent); }
+  .mistake-yours   { color: var(--red); text-decoration: line-through; }
+
+  .btn-restart {
+    width: 100%;
+    background: var(--accent);
+    color: #0e0e10;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem;
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .btn-restart:hover  { background: #d8ff3f; }
+  .btn-restart:active { transform: scale(0.98); }
+
+  /* SHAKE ANIMATION */
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+  }
+  .shake { animation: shake 0.35s ease; }
+
+  @keyframes pop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.03); }
+    100% { transform: scale(1); }
+  }
+  .pop { animation: pop 0.25s ease; }
+
+  /* scrollbar */
+  .mistakes-list::-webkit-scrollbar { width: 4px; }
+  .mistakes-list::-webkit-scrollbar-track { background: transparent; }
+  .mistakes-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">Glavna<span> Mesta</span></div>
+    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);letter-spacing:0.08em;">20 VPRAŠANJ</div>
+  </div>
+
+  <!-- QUIZ SECTION -->
+  <div id="quiz">
+    <div class="scorebar">
+      <div class="score-pill good">
+        <span class="score-label">✓ Pravilno</span>
+        <span class="score-val" id="correct-val">0</span>
+      </div>
+      <div class="score-pill bad">
+        <span class="score-label">✗ Napačno</span>
+        <span class="score-val" id="wrong-val">0</span>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <span class="progress-txt" id="progress-txt">0 / 20</span>
+    </div>
+
+    <div class="card" id="q-card">
+      <div class="q-mode-badge capital" id="q-mode-badge">Napiši glavno mesto</div>
+      <div class="q-num" id="q-num">Vprašanje 1 od 20</div>
+      <div class="q-country" id="q-country"></div>
+      <div class="input-row">
+        <input type="text" id="answer-input" placeholder="Vpiši glavno mesto…" autocomplete="off" spellcheck="false">
+        <button class="btn-submit" id="btn-submit">Preveri</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <button class="btn-next" id="btn-next">Naslednje vprašanje →</button>
+  </div>
+
+  <!-- RESULTS SECTION -->
+  <div id="results">
+    <div class="result-title" id="result-title">Konec kviza!</div>
+    <div class="result-sub" id="result-sub">Tukaj so vaši rezultati</div>
+    <div class="result-grid">
+      <div class="result-stat win">
+        <div class="num" id="r-score">0</div>
+        <div class="lbl">Končne točke</div>
+      </div>
+      <div class="result-stat">
+        <div class="num" id="r-correct">0</div>
+        <div class="lbl">Pravilno</div>
+      </div>
+      <div class="result-stat loss">
+        <div class="num" id="r-wrong">0</div>
+        <div class="lbl">Napačno</div>
+      </div>
+      <div class="result-stat">
+        <div class="num" id="r-pct">0%</div>
+        <div class="lbl">Natančnost</div>
+      </div>
+    </div>
+    <div class="mistakes-list" id="mistakes-list" style="display:none">
+      <h3>Zgrešeni odgovori</h3>
+      <div id="mistakes-body"></div>
+    </div>
+    <button class="btn-restart" id="btn-restart">Igraj znova</button>
+  </div>
+</div>
+
+<script>
+const ALL_COUNTRIES = [
+  { country: "Afganistan", iso: "AF", capital: "Kabul" },
+  { country: "Albanija", iso: "AL", capital: "Tirana" },
+  { country: "Alžirija", iso: "DZ", capital: "Alžir" },
+  { country: "Argentina", iso: "AR", capital: "Buenos Aires" },
+  { country: "Avstralija", iso: "AU", capital: "Canberra" },
+  { country: "Avstrija", iso: "AT", capital: "Dunaj" },
+  { country: "Bangladeš", iso: "BD", capital: "Daka" },
+  { country: "Belgija", iso: "BE", capital: "Bruselj" },
+  { country: "Bolivija", iso: "BO", capital: "Sucre" },
+  { country: "Brazilija", iso: "BR", capital: "Brasília" },
+  { country: "Bolgarija", iso: "BG", capital: "Sofija" },
+  { country: "Kambodža", iso: "KH", capital: "Phnom Penh" },
+  { country: "Kanada", iso: "CA", capital: "Ottawa" },
+  { country: "Čile", iso: "CL", capital: "Santiago" },
+  { country: "Kitajska", iso: "CN", capital: "Peking" },
+  { country: "Kolumbija", iso: "CO", capital: "Bogotá" },
+  { country: "Hrvaška", iso: "HR", capital: "Zagreb" },
+  { country: "Kuba", iso: "CU", capital: "Havana" },
+  { country: "Češka", iso: "CZ", capital: "Praga" },
+  { country: "Danska", iso: "DK", capital: "Kopenhagen" },
+  { country: "Ekvador", iso: "EC", capital: "Quito" },
+  { country: "Egipt", iso: "EG", capital: "Kairo" },
+  { country: "Etiopija", iso: "ET", capital: "Addis Abeba" },
+  { country: "Finska", iso: "FI", capital: "Helsinki" },
+  { country: "Francija", iso: "FR", capital: "Pariz" },
+  { country: "Nemčija", iso: "DE", capital: "Berlin" },
+  { country: "Gana", iso: "GH", capital: "Accra" },
+  { country: "Grčija", iso: "GR", capital: "Atene" },
+  { country: "Gvatemala", iso: "GT", capital: "Guatemala City" },
+  { country: "Madžarska", iso: "HU", capital: "Budimpešta" },
+  { country: "Islandija", iso: "IS", capital: "Reykjavik" },
+  { country: "Indija", iso: "IN", capital: "New Delhi" },
+  { country: "Indonezija", iso: "ID", capital: "Džakarta" },
+  { country: "Iran", iso: "IR", capital: "Teheran" },
+  { country: "Irak", iso: "IQ", capital: "Bagdad" },
+  { country: "Irska", iso: "IE", capital: "Dublin" },
+  { country: "Izrael", iso: "IL", capital: "Jeruzalem" },
+  { country: "Italija", iso: "IT", capital: "Rim" },
+  { country: "Jamajka", iso: "JM", capital: "Kingston" },
+  { country: "Japonska", iso: "JP", capital: "Tokio" },
+  { country: "Jordanija", iso: "JO", capital: "Amman" },
+  { country: "Kenija", iso: "KE", capital: "Nairobi" },
+  { country: "Kuvajt", iso: "KW", capital: "Kuwait City" },
+  { country: "Laos", iso: "LA", capital: "Vientiane" },
+  { country: "Libanon", iso: "LB", capital: "Bejrut" },
+  { country: "Libija", iso: "LY", capital: "Tripoli" },
+  { country: "Litva", iso: "LT", capital: "Vilna" },
+  { country: "Malezija", iso: "MY", capital: "Kuala Lumpur" },
+  { country: "Mehika", iso: "MX", capital: "Mexico City" },
+  { country: "Mongolija", iso: "MN", capital: "Ulaanbaatar" },
+  { country: "Maroko", iso: "MA", capital: "Rabat" },
+  { country: "Mozambik", iso: "MZ", capital: "Maputo" },
+  { country: "Mjanmar", iso: "MM", capital: "Naypyidaw" },
+  { country: "Nepal", iso: "NP", capital: "Katmandu" },
+  { country: "Nizozemska", iso: "NL", capital: "Amsterdam" },
+  { country: "Nova Zelandija", iso: "NZ", capital: "Wellington" },
+  { country: "Nigerija", iso: "NG", capital: "Abuja" },
+  { country: "Severna Koreja", iso: "KP", capital: "Pjongjang" },
+  { country: "Norveška", iso: "NO", capital: "Oslo" },
+  { country: "Pakistan", iso: "PK", capital: "Islamabad" },
+  { country: "Panama", iso: "PA", capital: "Panama City" },
+  { country: "Peru", iso: "PE", capital: "Lima" },
+  { country: "Filipini", iso: "PH", capital: "Manila" },
+  { country: "Poljska", iso: "PL", capital: "Varšava" },
+  { country: "Portugalska", iso: "PT", capital: "Lizbona" },
+  { country: "Romunija", iso: "RO", capital: "Bukarešta" },
+  { country: "Rusija", iso: "RU", capital: "Moskva" },
+  { country: "Savdska Arabija", iso: "SA", capital: "Rijad" },
+  { country: "Senegal", iso: "SN", capital: "Dakar" },
+  { country: "Srbija", iso: "RS", capital: "Beograd" },
+  { country: "Singapur", iso: "SG", capital: "Singapur" },
+  { country: "Slovaška", iso: "SK", capital: "Bratislava" },
+  { country: "Slovenija", iso: "SI", capital: "Ljubljana" },
+  { country: "Somalija", iso: "SO", capital: "Mogadiš" },
+  { country: "Južna Afrika", iso: "ZA", capital: "Pretoria" },
+  { country: "Južna Koreja", iso: "KR", capital: "Seul" },
+  { country: "Španija", iso: "ES", capital: "Madrid" },
+  { country: "Šrilanka", iso: "LK", capital: "Sri Jayawardenepura Kotte" },
+  { country: "Sudan", iso: "SD", capital: "Kartum" },
+  { country: "Švedska", iso: "SE", capital: "Stockholm" },
+  { country: "Švica", iso: "CH", capital: "Bern" },
+  { country: "Sirija", iso: "SY", capital: "Damask" },
+  { country: "Tajvan", iso: "TW", capital: "Tajpej" },
+  { country: "Tanzanija", iso: "TZ", capital: "Dodoma" },
+  { country: "Tajska", iso: "TH", capital: "Bangkok" },
+  { country: "Tunizija", iso: "TN", capital: "Tunis" },
+  { country: "Turčija", iso: "TR", capital: "Ankara" },
+  { country: "Uganda", iso: "UG", capital: "Kampala" },
+  { country: "Ukrajina", iso: "UA", capital: "Kijev" },
+  { country: "Združeno kraljestvo", iso: "GB", capital: "London" },
+  { country: "Združene države Amerike", iso: "US", capital: "Washington D.C." },
+  { country: "Urugvaj", iso: "UY", capital: "Montevideo" },
+  { country: "Uzbekistan", iso: "UZ", capital: "Taškent" },
+  { country: "Venezuela", iso: "VE", capital: "Caracas" },
+  { country: "Vietnam", iso: "VN", capital: "Hanoj" },
+  { country: "Jemen", iso: "YE", capital: "Sanaa" },
+  { country: "Zambija", iso: "ZM", capital: "Lusaka" },
+  { country: "Zimbabve", iso: "ZW", capital: "Harare" },
+];
+
+const TOTAL = 20;
+
+let questions = [], current = 0, correctCount = 0, wrongCount = 0, answered = false;
+let mistakes = [];
+
+function normalize(s) {
+  return s.trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[.\-]/g, " ")
+    .replace(/\s+/g, " ").trim();
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m+1}, (_, i) => [i]);
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1]
+        ? dp[i-1][j-1]
+        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function isClose(userVal, correctAnswer) {
+  const u = normalize(userVal);
+  const c = normalize(correctAnswer);
+  if (u === c) return true;
+  const dist = levenshtein(u, c);
+  return dist === 1;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  const picked = shuffle(ALL_COUNTRIES).slice(0, TOTAL);
+  questions = picked.map(q => ({ ...q, mode: Math.random() < 0.5 ? 'capital' : 'country' }));
+  current = 0; correctCount = 0; wrongCount = 0; mistakes = [];
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  updateScore();
+  showQuestion();
+}
+
+function showQuestion() {
+  answered = false;
+  const q = questions[current];
+  const isCapital = q.mode === 'capital';
+
+  document.getElementById('q-num').textContent = `Vprašanje ${current + 1} od ${TOTAL}`;
+
+  const badge = document.getElementById('q-mode-badge');
+  if (isCapital) {
+    badge.textContent = 'Napiši glavno mesto';
+    badge.className = 'q-mode-badge capital';
+    document.getElementById('q-country').innerHTML = `<img src="https://flagsapi.com/${q.iso}/flat/64.png" class="flag-img" alt="${q.country}"><span>${q.country}</span>`;
+    document.getElementById('answer-input').placeholder = 'Vpiši glavno mesto…';
+  } else {
+    badge.textContent = 'Napiši državo';
+    badge.className = 'q-mode-badge country';
+    document.getElementById('q-country').innerHTML = `<img src="https://flagsapi.com/${q.iso}/flat/64.png" class="flag-img" alt="zastava"><span style="font-size:1.5rem;color:var(--muted);font-weight:400;">🏙️ ${q.capital}</span>`;
+    document.getElementById('answer-input').placeholder = 'Vpiši ime države…';
+  }
+
+  document.getElementById('answer-input').value = '';
+  document.getElementById('answer-input').disabled = false;
+  document.getElementById('btn-submit').disabled = false;
+  document.getElementById('answer-input').focus();
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback';
+  fb.textContent = '';
+
+  const card = document.getElementById('q-card');
+  card.className = 'card';
+
+  document.getElementById('btn-next').className = 'btn-next';
+
+  const pct = (current / TOTAL) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-txt').textContent = `${current} / ${TOTAL}`;
+}
+
+function updateScore() {
+  document.getElementById('correct-val').textContent = correctCount;
+  document.getElementById('wrong-val').textContent = wrongCount;
+}
+
+function checkAnswer() {
+  if (answered) return;
+  const input = document.getElementById('answer-input');
+  const userVal = input.value;
+  if (!userVal.trim()) return;
+
+  answered = true;
+  const q = questions[current];
+  const isCapital = q.mode === 'capital';
+  const correctAnswer = isCapital ? q.capital : q.country;
+  const correct = isClose(userVal, correctAnswer);
+  const exactMatch = normalize(userVal) === normalize(correctAnswer);
+
+  const card = document.getElementById('q-card');
+  const fb = document.getElementById('feedback');
+
+  input.disabled = true;
+  document.getElementById('btn-submit').disabled = true;
+
+  if (correct) {
+    correctCount++;
+    card.className = 'card correct pop';
+    fb.className = 'feedback correct show';
+    fb.innerHTML = exactMatch
+      ? `✓ Pravilno! <strong>${correctAnswer}</strong>`
+      : `✓ Skoraj točno! <strong>${correctAnswer}</strong> <span style="opacity:0.7;font-size:0.75rem;">(zatipka sprejeta)</span>`;
+    setTimeout(() => card.classList.remove('pop'), 300);
+  } else {
+    wrongCount++;
+    card.className = 'card wrong shake';
+    fb.className = 'feedback wrong show';
+    const label = isCapital ? 'glavno mesto je' : 'država je';
+    fb.innerHTML = `✗ Napačno — ${label} <strong>${correctAnswer}</strong>`;
+    setTimeout(() => card.classList.remove('shake'), 400);
+    mistakes.push({
+      mode: q.mode,
+      country: q.country,
+      iso: q.iso,
+      capital: q.capital,
+      correct: correctAnswer,
+      yours: userVal
+    });
+  }
+
+  updateScore();
+  document.getElementById('btn-next').className = 'btn-next show';
+
+  const pct = ((current + 1) / TOTAL) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-txt').textContent = `${current + 1} / ${TOTAL}`;
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= TOTAL) {
+    showResults();
+  } else {
+    showQuestion();
+  }
+}
+
+function showResults() {
+  document.getElementById('quiz').style.display = 'none';
+  const res = document.getElementById('results');
+  res.style.display = 'block';
+
+  const correct = correctCount;
+  const pct = Math.round((correct / TOTAL) * 100);
+
+  let title = pct >= 80 ? '🎉 Odlično!' : pct >= 60 ? '👍 Kar dobro!' : pct >= 40 ? '😅 Nadaljuj!' : '💪 Vadi naprej!';
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-sub').textContent = `${correct} od ${TOTAL} pravilnih — ${pct}% natančnost`;
+  document.getElementById('r-score').textContent = correct;
+  document.getElementById('r-correct').textContent = correct;
+  document.getElementById('r-wrong').textContent = mistakes.length;
+  document.getElementById('r-pct').textContent = pct + '%';
+
+  const ml = document.getElementById('mistakes-list');
+  const mb = document.getElementById('mistakes-body');
+  if (mistakes.length > 0) {
+    ml.style.display = 'block';
+    mb.innerHTML = mistakes.map(m => {
+      const prompt = m.mode === 'capital'
+        ? `<img src="https://flagsapi.com/${m.iso}/flat/32.png" class="flag-img-sm"> ${m.country} → glavno mesto`
+        : `<img src="https://flagsapi.com/${m.iso}/flat/32.png" class="flag-img-sm"> ${m.capital} → država`;
+      return `<div class="mistake-item">
+        <span class="mistake-country">${prompt}</span>
+        <span class="mistake-answer">
+          <span class="mistake-yours">${m.yours}</span>
+          &nbsp;→&nbsp;
+          <span class="mistake-correct">${m.correct}</span>
+        </span>
+      </div>`;
+    }).join('');
+  } else {
+    ml.style.display = 'none';
+  }
+}
+
+document.getElementById('btn-submit').addEventListener('click', checkAnswer);
+document.getElementById('answer-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (answered) nextQuestion();
+    else checkAnswer();
+  }
+});
+document.getElementById('btn-next').addEventListener('click', nextQuestion);
+document.getElementById('btn-restart').addEventListener('click', startGame);
+
+startGame();
+</script>
+</body>
+</html>
